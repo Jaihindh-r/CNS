@@ -1,0 +1,662 @@
+1 a)
+
+
+public class caesarCipher
+{
+  public static String encode (String enc, int offset)
+  {
+    offset = offset % 26 + 26;
+    StringBuilder encoded = new StringBuilder ();
+    for (char i:enc.toCharArray ())
+      {
+if (Character.isLetter (i))
+ {
+   if (Character.isUpperCase (i))
+     {
+encoded.append ((char) ('A' + (i - 'A' + offset) % 26));
+     }
+   else
+     {
+encoded.append ((char) ('a' + (i - 'a' + offset) % 26));
+ }}
+else
+ {
+   encoded.append (i);
+ }
+      }
+    return encoded.toString ();
+  }
+  public static String decode (String enc, int offset)
+  {
+    return encode (enc, 26 - offset);
+  }
+  public static void main (String[]args) throws java.lang.Exception
+  {
+    String msg = "Anna University";
+      System.out.
+      println ("SimulatingCaesarCipher\n--------------------------------");
+      System.out.println ("Input : " + msg);
+      System.out.printf ("Encrypted Message : ");
+      System.out.println (caesarCipher.encode (msg, 3));
+      System.out.printf ("Decrypted Message : ");
+      System.out.println (caesarCipher.
+ decode (caesarCipher.encode (msg, 3), 3));
+}}
+
+
+====================================================================
+
+1 b)
+
+import java.awt.Point;
+public class playfairCipher
+{
+  private static char[][] charTable;
+  private static Point[] positions;
+  private static String prepareText (String s, boolean chgJtoI)
+  {
+    s = s.toUpperCase ().replaceAll ("[^A-Z]", "");
+    return chgJtoI ? s.replace ("J", "I") : s.replace ("Q", "");
+  }
+  private static void createTbl (String key, boolean chgJtoI)
+  {
+    charTable = new char[5][5];
+    positions = new Point[26];
+    String s = prepareText (key + "ABCDEFGHIJKLMNOPQRSTUVWXYZ", chgJtoI);
+    int len = s.length ();
+    for (int i = 0, k = 0; i < len; i++)
+      {
+char c = s.charAt (i);
+if (positions[c - 'A'] == null)
+ {
+   charTable[k / 5][k % 5] = c;
+   positions[c - 'A'] = new Point (k % 5, k / 5);
+   k++;
+ }
+      }
+  }
+  private static String codec (StringBuilder txt, int dir)
+  {
+    int len = txt.length ();
+    for (int i = 0; i < len; i += 2)
+      {
+char a = txt.charAt (i);
+char b = txt.charAt (i + 1);
+int row1 = positions[a - 'A'].y;
+int row2 = positions[b - 'A'].y;
+int col1 = positions[a - 'A'].x;
+int col2 = positions[b - 'A'].x;
+if (row1 == row2)
+ {
+   col1 = (col1 + dir) % 5;
+   col2 = (col2 + dir) % 5;
+ }
+else if (col1 == col2)
+ {
+   row1 = (row1 + dir) % 5;
+   row2 = (row2 + dir) % 5;
+ }
+else
+ {
+   int tmp = col1;
+   col1 = col2;
+   col2 = tmp;
+ } txt.setCharAt (i, charTable[row1][col1]);
+txt.setCharAt (i + 1, charTable[row2][col2]);
+      } return txt.toString ();
+  }
+  private static String encode (String s)
+  {
+    StringBuilder sb = new StringBuilder (s);
+    for (int i = 0; i < sb.length (); i += 2)
+      {
+if (i == sb.length () - 1)
+ {
+   sb.append (sb.length () % 2 == 1 ? 'X' : "");
+ }
+else if (sb.charAt (i) == sb.charAt (i + 1))
+ {
+   sb.insert (i + 1, 'X');
+ }
+      }
+    return codec (sb, 1);
+  }
+  private static String decode (String s)
+  {
+    return codec (new StringBuilder (s), 4);
+  }
+  public static void main (String[]args) throws java.lang.Exception
+  {
+    String key = "CSE";
+    String txt = "Security Lab"; /* make sure string length is even *//* change J to I */
+    boolean chgJtoI = true;
+      createTbl (key, chgJtoI);
+    String enc = encode (prepareText (txt, chgJtoI));
+      System.out.
+      println ("SimulatingPlayfairCipher\n-------------------------------");
+      System.out.println ("Input Message : " + txt);
+      System.out.println ("Encrypted Message : " + enc);
+      System.out.println ("Decrypted Message : " + decode (enc));
+}}
+
+
+===================================================================
+
+1 c)
+
+
+public class hillCipher
+{ /* 3x3 key matrix for 3 characters at once */
+  public static int[][] keymat = new int[][]{ {1, 2, 1}, {2, 3, 2}, {2, 2, 1} }; /* key inverse matrix */
+  public static int[][] invkeymat =
+    new int[][]{ {-1, 0, 1}, {2, -1, 0}, {-2, 2, -1} };
+  public static String key = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  private static String encode (char a, char b, char c)
+  {
+    String ret = "";
+    int x, y, z;
+    int posa = (int) a - 65;
+    int posb = (int) b - 65;
+    int posc = (int) c - 65;
+      x = posa * keymat[0][0] + posb * keymat[1][0] + posc * keymat[2][0];
+      y = posa * keymat[0][1] + posb * keymat[1][1] + posc * keymat[2][1];
+      z = posa * keymat[0][2] + posb * keymat[1][2] + posc * keymat[2][2];
+      a = key.charAt (x % 26);
+      b = key.charAt (y % 26);
+      c = key.charAt (z % 26);
+      ret = "" + a + b + c;
+      return ret;
+  }
+  private static String decode (char a, char b, char c)
+  {
+    String ret = "";
+    int x, y, z;
+    int posa = (int) a - 65;
+    int posb = (int) b - 65;
+    int posc = (int) c - 65;
+    x =
+      posa * invkeymat[0][0] + posb * invkeymat[1][0] +
+      posc * invkeymat[2][0];
+    y =
+      posa * invkeymat[0][1] + posb * invkeymat[1][1] +
+      posc * invkeymat[2][1];
+    z =
+      posa * invkeymat[0][2] + posb * invkeymat[1][2] +
+      posc * invkeymat[2][2];
+    a = key.charAt ((x % 26 < 0) ? (26 + x % 26) : (x % 26));
+    b = key.charAt ((y % 26 < 0) ? (26 + y % 26) : (y % 26));
+    c = key.charAt ((z % 26 < 0) ? (26 + z % 26) : (z % 26));
+    ret = "" + a + b + c;
+    return ret;
+  }
+  public static void main (String[]args) throws java.lang.Exception
+  {
+    String msg;
+    String enc = "";
+    String dec = "";
+    int n;
+      msg = ("SecurityLaboratory");
+      System.out.println
+      ("simulation ofHillCipher\n-----------------------------------");
+      System.out.println ("Input message : " + msg);
+      msg = msg.toUpperCase ();
+      msg = msg.replaceAll ("\\s", ""); /* remove spaces */
+      n = msg.length () % 3; /* append padding text X */
+    if (n != 0)
+      {
+for (int i = 1; i <= (3 - n); i++)
+ {
+   msg += 'X';
+ }
+      }
+    System.out.println ("padded message :" + msg);
+    char[] pdchars = msg.toCharArray ();
+    for (int i = 0; i < msg.length (); i += 3)
+      {
+enc += encode (pdchars[i], pdchars[i + 1], pdchars[i + 2]);
+      } System.out.println ("encoded message : " + enc);
+    char[] dechars = enc.toCharArray ();
+    for (int i = 0; i < enc.length (); i += 3)
+      {
+dec += decode (dechars[i], dechars[i + 1], dechars[i + 2]);
+      } System.out.println ("decoded message : " + dec);
+}}
+
+
+==================================================
+
+1 D)
+
+
+
+public class vigenereCipher
+{
+  static String encode (String text, final String key)
+  {
+    String res = "";
+      text = text.toUpperCase ();
+    for (int i = 0, j = 0; i < text.length (); i++)
+      {
+char c = text.charAt (i);
+if (c < 'A' || c > 'Z')
+ {
+   continue;
+ }
+res += (char) ((c + key.charAt (j) - 2 * 'A') % 26 + 'A');
+j = ++j % key.length ();
+      }
+    return res;
+  }
+  static String decode (String text, final String key)
+  {
+    String res = "";
+    text = text.toUpperCase ();
+    for (int i = 0, j = 0; i < text.length (); i++)
+      {
+char c = text.charAt (i);
+if (c < 'A' || c > 'Z')
+ {
+   continue;
+ }
+res += (char) ((c - key.charAt (j) + 26) % 26 + 'A');
+j = ++j % key.length ();
+      }
+    return res;
+  }
+  public static void main (String[]args) throws java.lang.Exception
+  {
+    String key = "VIGENERECIPHER";
+    String msg = "Security";
+      System.out.
+      println
+      ("Simulating Vigenere Cipher\n--------------------------------- ");
+      System.out.println ("Input Message : " + msg);
+      String enc = encode (msg, key);
+      System.out.println ("Encrypted Message : " + enc);
+      System.out.println ("Decrypted Message : " + decode (enc, key));
+  }
+}
+
+===========================================================
+
+
+2 a)
+
+class railfenceCipherHelper
+{
+  int depth;
+  String encode (String msg, int depth) throws Exception
+  {
+    int r = depth;
+    int l = msg.length ();
+    int c = l / depth;
+    int k = 0;
+    char mat[][] = new char[r][c];
+    String enc = "";
+    for (int i = 0; i < c; i++)
+      {
+for (int j = 0; j < r; j++)
+ {
+   if (k != l)
+     {
+mat[j][i] = msg.charAt (k++);
+     }
+   else
+     {
+mat[j][i] = 'X';
+     }
+ }
+      }
+    for (int i = 0; i < r; i++)
+      {
+for (int j = 0; j < c; j++)
+ {
+   enc += mat[i][j];
+ }
+      } return enc;
+  }
+  String decode (String encmsg, int depth) throws Exception
+  {
+    int r = depth;
+    int l = encmsg.length ();
+    int c = l / depth;
+    int k = 0;
+    char mat[][] = new char[r][c];
+    String dec = "";
+    for (int i = 0; i < r; i++)
+      {
+for (int j = 0; j < c; j++)
+ {
+   mat[i][j] = encmsg.charAt (k++);
+    }} for (int i = 0; i < c; i++)
+      {
+for (int j = 0; j < r; j++)
+ {
+   dec += mat[j][i];
+      }} return dec;
+  }
+}
+
+public class railFenceCipher
+{
+  public static void main (String[]args) throws java.lang.Exception
+  {
+    railfenceCipherHelper rf = new railfenceCipherHelper ();
+    String msg, enc, dec;
+      msg = "Anna University, Chennai";
+    int depth = 2;
+      enc = rf.encode (msg, depth);
+      dec = rf.decode (enc, depth);
+      System.out.
+      println
+      ("SimulatingRailfenceCipher\n----------------------------------");
+      System.out.println ("Input Message : " + msg);
+      System.out.println ("Encrypted Message : " + enc);
+      System.out.printf ("Decrypted Message : " + dec);
+}}
+
+
+
+2 b)
+
+import java.util.*;
+public class TransCipher
+{
+  public static void main (String args[])
+  {
+    Scanner sc = new Scanner (System.in);
+      System.out.println ("Enter the plain text");
+    String pl = sc.nextLine ();
+      sc.close ();
+    String s = "";
+    int start = 0;
+    for (int i = 0; i < pl.length (); i++)
+      {
+if (pl.charAt (i) == ' ')
+ {
+   s = s + pl.substring (start, i);
+   start = i + 1;
+ }
+      }
+    s = s + pl.substring (start);
+    System.out.print (s);
+    System.out.println ();
+    System.out.print (s);
+    System.out.println ();
+    int k = s.length ();
+    int l = 0;
+    int col = 4;
+    int row = s.length () / col;
+    char ch[][] = new char[row][col];
+    for (int i = 0; i < row; i++)
+      {
+for (int j = 0; j < col; j++)
+ {
+   if (l < k)
+     {
+ch[i][j] = s.charAt (l);
+l++;
+     }
+   else
+     {
+ch[i][j] = '#';
+     }
+ }
+      }
+    char trans[][] = new char[col][row];
+    for (int i = 0; i < row; i++)
+      {
+for (int j = 0; j < col; j++)
+ {
+   trans[j][i] = ch[i][j];
+    }} for (int i = 0; i < col; i++)
+      {
+for (int j = 0; j < row; j++)
+ {
+   System.out.print (trans[i][j]);
+      }} System.out.println ();
+}}
+
+==================================================================
+
+3 )
+
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+
+public class DES{
+  public static void main (String[]argv)
+  {
+    try
+    {
+      System.out.println("Message Encryption UsingDESAlgorithm\n--------------");
+      KeyGenerator keygenerator = KeyGenerator.getInstance ("DES");
+      SecretKey myDesKey = keygenerator.generateKey ();
+      Cipher desCipher;
+      desCipher = Cipher.getInstance ("DES/ECB/PKCS5Padding");
+      desCipher.init (Cipher.ENCRYPT_MODE, myDesKey);
+      byte[] text = "Secret Information ".getBytes ();
+      System.out.println ("Message [Byte Format] : " + text);
+      System.out.println ("Message : " + new String (text));
+      byte[] textEncrypted = desCipher.doFinal (text);
+      System.out.println ("Encrypted Message: " + textEncrypted);
+      desCipher.init (Cipher.DECRYPT_MODE, myDesKey);
+      byte[] textDecrypted = desCipher.doFinal (textEncrypted);
+      System.out.println ("Decrypted Message: " +new String (textDecrypted));
+    } catch (NoSuchAlgorithmException e){
+      e.printStackTrace ();
+    } catch (NoSuchPaddingException e){
+      e.printStackTrace ();
+    } catch (InvalidKeyException e){
+      e.printStackTrace ();
+    } catch (IllegalBlockSizeException e){
+      e.printStackTrace ();
+    } catch (BadPaddingException e){
+      e.printStackTrace ();
+    }
+}}
+
+===================================================================
+
+4 )
+
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.Base64;
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
+
+public class AES{
+  private static SecretKeySpec secretKey;
+  private static byte[] key;
+  public static void setKey (String myKey)
+  {
+    MessageDigest sha = null;
+      try
+    {
+      key = myKey.getBytes ("UTF-8");
+      sha = MessageDigest.getInstance ("SHA-1");
+      key = sha.digest (key);
+      key = Arrays.copyOf (key, 16);
+      secretKey = new SecretKeySpec (key, "AES");
+    } catch (NoSuchAlgorithmException e)
+    {
+      e.printStackTrace ();
+    } catch (UnsupportedEncodingException e)
+    {
+      e.printStackTrace ();
+    }
+  }
+  public static String encrypt (String strToEncrypt, String secret)
+  {
+    try
+    {
+      setKey (secret);
+      Cipher cipher = Cipher.getInstance ("AES/ECB/PKCS5Padding");
+      cipher.init (Cipher.ENCRYPT_MODE, secretKey);
+      return Base64.getEncoder ().
+encodeToString (cipher.doFinal (strToEncrypt.getBytes ("UTF-8")));
+    }
+    catch (Exception e)
+    {
+      System.out.println ("Error while encrypting: " + e.toString ());
+    }
+    return null;
+  }
+  public static String decrypt (String strToDecrypt, String secret)
+  {
+    try
+    {
+      setKey (secret);
+      Cipher cipher = Cipher.getInstance ("AES/ECB/PKCS5PADDING");
+      cipher.init (Cipher.DECRYPT_MODE, secretKey);
+      return new
+String (cipher.doFinal (Base64.getDecoder ().decode (strToDecrypt)));
+    }
+    catch (Exception e)
+    {
+      System.out.println ("Error while decrypting: " + e.toString ());
+    }
+    return null;
+  }
+
+  public static void main (String[]args)
+  {
+    final String secretKey = "annaUniversity";
+    String originalString = "www.annauniv.edu";
+    String encryptedString = AES.encrypt (originalString, secretKey);
+    String decryptedString = AES.decrypt (encryptedString, secretKey);
+    System.out.
+      println ("URL Encryption UsingAESAlgorithm\n----------------------");
+    System.out.println ("Original URL : " + originalString);
+    System.out.println ("Encrypted URL : " + encryptedString);
+    System.out.println ("Decrypted URL : " + decryptedString);
+}}
+
+====================================================================
+
+5 )
+
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.Random;
+
+public class Main
+{
+  private BigInteger P;
+  private BigInteger Q;
+  private BigInteger N;
+  private BigInteger PHI;
+  private BigInteger e;
+  private BigInteger d;
+
+
+  private int maxLength = 1024;
+  private Random R;
+
+  public Main ()
+  {
+    R = new Random ();
+    P = BigInteger.probablePrime (maxLength, R);
+    Q = BigInteger.probablePrime (maxLength, R);
+    N = P.multiply (Q);
+    PHI = P.subtract (BigInteger.ONE).multiply (Q.subtract (BigInteger.ONE));
+    e = BigInteger.probablePrime (maxLength / 2, R);
+    while (PHI.gcd (e).compareTo (BigInteger.ONE) > 0
+  && e.compareTo (PHI) < 0)
+      {
+e.add (BigInteger.ONE);
+      }
+    d = e.modInverse (PHI);
+  }
+
+  public Main (BigInteger e, BigInteger d, BigInteger N)
+  {
+    this.e = e;
+    this.d = d;
+    this.N = N;
+  }
+
+
+
+  public static void main (String[]arguments) throws IOException
+  {
+    Main rsa = new Main ();
+    DataInputStream input = new DataInputStream (System.in);
+    String inputString;
+      System.out.println ("Enter message you wish to send.");
+      inputString = input.readLine ();
+      System.out.println ("Encrypting the message: " + inputString);
+      System.out.println ("The message in bytes is:: " +
+ bToS (inputString.getBytes ()));
+// encryption
+      byte[] cipher = rsa.encryptMessage (inputString.getBytes ());
+// decryption
+      byte[] plain = rsa.decryptMessage (cipher);
+      System.out.println ("Decrypting Bytes: " + bToS (plain));
+      System.out.println ("Plain message is: " + new String (plain));
+  }
+
+  private static String bToS (byte[]cipher)
+  {
+    String temp = "";
+  for (byte b:cipher)
+      {
+temp += Byte.toString (b);
+      }
+    return temp;
+
+  }
+
+// Encrypting the message
+  public byte[] encryptMessage (byte[]message)
+  {
+    return (new BigInteger (message)).modPow (e, N).toByteArray ();
+  }
+
+// Decrypting the message
+  public byte[] decryptMessage (byte[]message)
+  {
+    return (new BigInteger (message)).modPow (d, N).toByteArray ();
+  }
+}
+
+====================================================================
+
+6 )
+
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.PrivateKey;
+import java.security.Signature;
+import java.util.Scanner;
+
+public class Main
+{
+  public static void main (String args[]) throws Exception
+  {
+    Scanner sc = new Scanner (System.in);
+      System.out.println ("Enter some text");
+    String msg = sc.nextLine ();
+    KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance ("DSA");
+      keyPairGen.initialize (2048);
+    KeyPair pair = keyPairGen.generateKeyPair ();
+    PrivateKey privKey = pair.getPrivate ();
+    Signature sign = Signature.getInstance ("SHA256withDSA");
+      sign.initSign (privKey);
+      byte[] bytes = "msg".getBytes ();
+      sign.update (bytes);
+      byte[] signature = sign.sign ();
+      System.out.println ("Digital signature for given text: " +
+ new String (signature, "UTF8"));
+  }
+}
